@@ -381,21 +381,21 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
         return
 
     async def async_set_cover_tilt_position(self, **kwargs):
-    """Move the cover tilt to a specific position."""
-    if ATTR_TILT_POSITION in kwargs:
-        await self.check_availability()
-        if not self.available:
-            return
-        position = kwargs[ATTR_TILT_POSITION]
-        current_position = self.tilt_tc.current_position()
-        
-        if position < current_position:
-            self.tilt_tc.start_travel_up()
-        elif position > current_position:
-            self.tilt_tc.start_travel_down()
-            
-        self.tilt_tc.start_travel(position)
-        self.start_auto_updater()
+        """Move the cover tilt to a specific position."""
+        if ATTR_TILT_POSITION in kwargs:
+            await self.check_availability()
+            if not self.available:
+                return
+            position = kwargs[ATTR_TILT_POSITION]
+            current_position = self.tilt_tc.current_position()
+
+            if position < current_position:
+                self.tilt_tc.start_travel_up()
+            elif position > current_position:
+                self.tilt_tc.start_travel_down()
+
+            self.tilt_tc.start_travel(position)
+            self.start_auto_updater()
 
     async def async_open_cover_tilt(self, **kwargs):
         """Open the cover tilt."""
@@ -420,7 +420,6 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
             return
         self.tilt_tc.stop()
         self.stop_auto_updater()
-
 
     def start_auto_updater(self):
         """Start the autoupdater to update HASS while cover is moving."""

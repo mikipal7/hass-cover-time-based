@@ -103,6 +103,30 @@ class TravelCalculator:
         """Start traveling down."""
         self.start_travel(self.position_closed)
 
+    def start_travel_tilt(self, _travel_to_position: int) -> None:
+        """Start traveling tilt to position."""
+        if self._last_known_position is None:
+            self.set_position(_travel_to_position)
+            return
+        self.stop()
+        self._last_known_position_timestamp = time.time()
+        self._travel_to_position = _travel_to_position
+        self._position_confirmed = False
+
+        self.travel_direction = (
+            TravelStatus.DIRECTION_DOWN
+            if _travel_to_position > self._last_known_position
+            else TravelStatus.DIRECTION_UP
+        )
+
+    def start_travel_tilt_up(self) -> None:
+        """Start traveling tilt up."""
+        self.start_travel_tilt(self.position_open)
+
+    def start_travel_tilt_down(self) -> None:
+        """Start traveling tilt down."""
+        self.start_travel_tilt(self.position_closed)
+
     def current_position(self) -> int | None:
         """Return current (calculated or known) position."""
         if not self._position_confirmed:
