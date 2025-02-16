@@ -18,6 +18,7 @@ from .const import CONF_ENTITY_STOP
 from .const import CONF_ENTITY_UP
 from .const import CONF_TIME_CLOSE
 from .const import CONF_TIME_OPEN
+from .const import CONF_SLATS_OPEN_TIME, CONF_SLATS_CLOSE_TIME, DEFAULT_SLATS_TIME
 from .const import DOMAIN
 
 DOMAIN_ENTITIES_ALLOWED = [Platform.SWITCH, Platform.LIGHT, Platform.BUTTON, "script"]
