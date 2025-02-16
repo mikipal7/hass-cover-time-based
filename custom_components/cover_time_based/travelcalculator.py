@@ -193,12 +193,22 @@ class TravelCalculator:
             from_position=self._last_known_position,
             to_position=self._travel_to_position,
         )
-        if time.time() > self._last_known_position_timestamp + remaining_travel_time:
+        elapsed_time = time.time() - self._last_known_position_timestamp
+
+        if elapsed_time > remaining_travel_time:
             return self._travel_to_position
 
-        progress = (
-            time.time() - self._last_known_position_timestamp
-        ) / remaining_travel_time
+        # Calculate the progress considering slats time
+        slats_time = 0
+        if self._last_known_position == 100 or self._travel_to_position == 100:
+            slats_time = self.slats_close_time if self.travel_direction == TravelStatus.DIRECTION_DOWN else self.slats_open_time
+        if elapsed_time < slats_time:
+            # During slats adjustment, position changes very slowly
+            progress = elapsed_time / slats_time * 0.1  # Assume 10% of the movement during slats adjustment
+        else:
+            # Normal movement after slats adjustment
+            progress = (elapsed_time - slats_time) / remaining_travel_time
+
         return int(self._last_known_position + relative_position * progress)
 
     def calculate_travel_time(self, from_position: int, to_position: int) -> float:
@@ -207,5 +217,7 @@ class TravelCalculator:
         travel_time_full = (
             self.travel_time_down if travel_range > 0 else self.travel_time_up
         )
-        slats_time = self.slats_close_time if travel_range > 0 else self.slats_open_time
-        return (travel_time_full - slats_time) * abs(travel_range) / 100
+        slats_time = 0
+        if from_position == 100 or to_position == 100:
+            slats_time = self.slats_close_time if travel_range > 0 else self.slats_open_time
+        return travel_time_full - slats_time
