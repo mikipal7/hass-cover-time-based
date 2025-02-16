@@ -53,6 +53,24 @@ CONFIG_FLOW = {
                         unit_of_measurement="sec",
                     )
                 ),
+                vol.Optional(CONF_SLATS_OPEN_TIME, default=DEFAULT_SLATS_TIME): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        mode=selector.NumberSelectorMode.BOX,
+                        min=0,
+                        max=120,
+                        step="any",
+                        unit_of_measurement="sec",
+                    )
+                ),
+                vol.Optional(CONF_SLATS_CLOSE_TIME, default=DEFAULT_SLATS_TIME): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        mode=selector.NumberSelectorMode.BOX,
+                        min=0,
+                        max=120,
+                        step="any",
+                        unit_of_measurement="sec",
+                    )
+                ),
             }
         )
     )
@@ -74,6 +92,24 @@ OPTIONS_FLOW = {
                 vol.Optional(CONF_TIME_CLOSE): selector.NumberSelector(
                     selector.NumberSelectorConfig(
                         mode=selector.NumberSelectorMode.BOX,
+                        max=120,
+                        step="any",
+                        unit_of_measurement="sec",
+                    )
+                ),
+                vol.Optional(CONF_SLATS_OPEN_TIME, default=DEFAULT_SLATS_TIME): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        mode=selector.NumberSelectorMode.BOX,
+                        min=0,
+                        max=120,
+                        step="any",
+                        unit_of_measurement="sec",
+                    )
+                ),
+                vol.Optional(CONF_SLATS_CLOSE_TIME, default=DEFAULT_SLATS_TIME): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        mode=selector.NumberSelectorMode.BOX,
+                        min=0,
                         max=120,
                         step="any",
                         unit_of_measurement="sec",

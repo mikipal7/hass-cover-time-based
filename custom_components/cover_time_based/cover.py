@@ -99,9 +99,12 @@ async def async_setup_entry(
                 entity_up,
                 entity_down,
                 entity_stop,
+                config_entry.options.get(CONF_SLATS_OPEN_TIME, DEFAULT_SLATS_TIME),
+                config_entry.options.get(CONF_SLATS_CLOSE_TIME, DEFAULT_SLATS_TIME),
             )
         ]
     )
+
 
 
 class CoverTimeBased(CoverEntity, RestoreEntity):
@@ -114,6 +117,8 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
         open_switch_entity_id,
         close_switch_entity_id,
         stop_switch_entity_id=None,
+        slats_open_time=DEFAULT_SLATS_TIME,
+        slats_close_time=DEFAULT_SLATS_TIME,
     ):
         """Initialize the cover."""
         if not travel_time_down:
@@ -128,10 +133,15 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
         self._stop_switch_entity_id = stop_switch_entity_id
         self._name = name
         self._attr_unique_id = unique_id
+        self._slats_open_time = slats_open_time
+        self._slats_close_time = slats_close_time
+        self._tilt_position = None
 
         self._unsubscribe_auto_updater = None
 
         self.tc = TravelCalculator(self._travel_time_down, self._travel_time_up)
+        self.tilt_tc = TravelCalculator(self._slats_open_time, self._slats_close_time)
+
 
     async def async_added_to_hass(self):
         """Only cover's position matters."""
@@ -242,8 +252,12 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
             attr[CONF_TIME_CLOSE] = self._travel_time_down
         if self._travel_time_up is not None:
             attr[CONF_TIME_OPEN] = self._travel_time_up
+        if self._slats_open_time is not None:
+            attr[CONF_SLATS_OPEN_TIME] = self._slats_open_time
+        if self._slats_close_time is not None:
+            attr[CONF_SLATS_CLOSE_TIME] = self._slats_close_time
         return attr
-
+    
     @property
     def current_cover_position(self):
         """Return the current position of the cover."""
@@ -270,6 +284,21 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
         """Return if the cover is closed."""
         return self.current_cover_position is None or self.current_cover_position <= 10
 
+    @property
+    def current_cover_tilt_position(self):
+        """Return current tilt position of cover."""
+        return self.tilt_tc.current_position()
+
+    @property
+    def is_opening_tilt(self):
+        """Return if the cover is tilting open."""
+        return self.tilt_tc.is_traveling() and self.tilt_tc.travel_direction == TravelStatus.DIRECTION_DOWN
+
+    @property
+    def is_closing_tilt(self):
+        """Return if the cover is tilting closed."""
+        return self.tilt_tc.is_traveling() and self.tilt_tc.travel_direction == TravelStatus.DIRECTION_UP
+    
     @property
     def assumed_state(self):
         """Return True because covers can be stopped midway."""
@@ -350,6 +379,48 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
             self.tc.start_travel(position)
             _LOGGER.debug("set_position :: command %s", command)
         return
+
+    async def async_set_cover_tilt_position(self, **kwargs):
+    """Move the cover tilt to a specific position."""
+    if ATTR_TILT_POSITION in kwargs:
+        await self.check_availability()
+        if not self.available:
+            return
+        position = kwargs[ATTR_TILT_POSITION]
+        current_position = self.tilt_tc.current_position()
+        
+        if position < current_position:
+            self.tilt_tc.start_travel_up()
+        elif position > current_position:
+            self.tilt_tc.start_travel_down()
+            
+        self.tilt_tc.start_travel(position)
+        self.start_auto_updater()
+
+    async def async_open_cover_tilt(self, **kwargs):
+        """Open the cover tilt."""
+        await self.check_availability()
+        if not self.available:
+            return
+        self.tilt_tc.start_travel_down()
+        self.start_auto_updater()
+
+    async def async_close_cover_tilt(self, **kwargs):
+        """Close the cover tilt."""
+        await self.check_availability()
+        if not self.available:
+            return
+        self.tilt_tc.start_travel_up()
+        self.start_auto_updater()
+
+    async def async_stop_cover_tilt(self, **kwargs):
+        """Stop the cover tilt."""
+        await self.check_availability()
+        if not self.available:
+            return
+        self.tilt_tc.stop()
+        self.stop_auto_updater()
+
 
     def start_auto_updater(self):
         """Start the autoupdater to update HASS while cover is moving."""
