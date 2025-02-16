@@ -143,8 +143,8 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
 
         self._unsubscribe_auto_updater = None
 
-        self.tc = TravelCalculator(self._travel_time_down, self._travel_time_up)
-        self.tilt_tc = TravelCalculator(self._slats_open_time, self._slats_close_time)
+        self.tc = TravelCalculator(self._travel_time_down, self._travel_time_up, self._slats_open_time, self._slats_close_time)
+        self.tilt_tc = TravelCalculator(self._slats_open_time, self._slats_close_time, self._slats_open_time, self._slats_close_time)
 
     async def async_added_to_hass(self):
         """Only cover's position matters."""

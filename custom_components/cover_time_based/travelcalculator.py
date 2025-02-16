@@ -34,6 +34,8 @@ class TravelCalculator:
         "travel_direction",
         "travel_time_down",
         "travel_time_up",
+        "slats_open_time",
+        "slats_close_time",
         "_last_known_position",
         "_last_known_position_timestamp",
         "_position_confirmed",
@@ -42,11 +44,13 @@ class TravelCalculator:
         "position_open",
     )
 
-    def __init__(self, travel_time_down: float, travel_time_up: float) -> None:
+    def __init__(self, travel_time_down: float, travel_time_up: float, slats_open_time: float, slats_close_time: float) -> None:
         """Initialize TravelCalculator class."""
         self.travel_direction = TravelStatus.STOPPED
         self.travel_time_down = travel_time_down
         self.travel_time_up = travel_time_up
+        self.slats_open_time = slats_open_time
+        self.slats_close_time = slats_close_time
 
         self._last_known_position: int | None = None
         self._last_known_position_timestamp: float = 0.0
@@ -58,9 +62,10 @@ class TravelCalculator:
         self.position_open: int = 0
 
     def set_position(self, position: int) -> None:
-        """Set position and target of cover."""
-        self._travel_to_position = position
-        self.update_position(position)
+        """Set the current position."""
+        self._last_known_position = position
+        self._last_known_position_timestamp = time.time()
+        self._position_confirmed = True
 
     def update_position(self, position: int) -> None:
         """Update known position of cover."""
@@ -202,4 +207,5 @@ class TravelCalculator:
         travel_time_full = (
             self.travel_time_down if travel_range > 0 else self.travel_time_up
         )
-        return travel_time_full * abs(travel_range) / self.position_closed
+        slats_time = self.slats_close_time if travel_range > 0 else self.slats_open_time
+        return (travel_time_full - slats_time) * abs(travel_range) / 100
