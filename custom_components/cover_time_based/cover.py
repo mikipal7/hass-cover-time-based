@@ -30,11 +30,16 @@ from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util import slugify
 
-from .const import CONF_ENTITY_DOWN
-from .const import CONF_ENTITY_STOP
-from .const import CONF_ENTITY_UP
-from .const import CONF_TIME_CLOSE
-from .const import CONF_TIME_OPEN
+from .const import (
+    CONF_ENTITY_DOWN,
+    CONF_ENTITY_STOP,
+    CONF_ENTITY_UP,
+    CONF_TIME_CLOSE,
+    CONF_TIME_OPEN,
+    CONF_SLATS_OPEN_TIME,
+    CONF_SLATS_CLOSE_TIME,
+    DEFAULT_SLATS_TIME,  # Add this line to import DEFAULT_SLATS_TIME
+)
 from .travelcalculator import TravelCalculator
 from .travelcalculator import TravelStatus
 
@@ -95,7 +100,7 @@ async def async_setup_entry(
                 generate_unique_id(config_entry.title),
                 config_entry.title,
                 config_entry.options.get(CONF_TIME_CLOSE),
-                config_entry.options[CONF_TIME_OPEN],
+                config_entry.options.get(CONF_TIME_OPEN),
                 entity_up,
                 entity_down,
                 entity_stop,
@@ -104,7 +109,6 @@ async def async_setup_entry(
             )
         ]
     )
-
 
 
 class CoverTimeBased(CoverEntity, RestoreEntity):
@@ -141,7 +145,6 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
 
         self.tc = TravelCalculator(self._travel_time_down, self._travel_time_up)
         self.tilt_tc = TravelCalculator(self._slats_open_time, self._slats_close_time)
-
 
     async def async_added_to_hass(self):
         """Only cover's position matters."""
