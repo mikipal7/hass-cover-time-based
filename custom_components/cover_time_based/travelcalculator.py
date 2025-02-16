@@ -213,11 +213,11 @@ class TravelCalculator:
 
     def calculate_travel_time(self, from_position: int, to_position: int) -> float:
         """Calculate time to travel from one position to another."""
-        travel_range = to_position - from_position
+        travel_range = abs(to_position - from_position)
         travel_time_full = (
-            self.travel_time_down if travel_range > 0 else self.travel_time_up
+            self.travel_time_down if from_position > to_position else self.travel_time_up
         )
         slats_time = 0
-        if from_position == 100 or to_position == 100:
-            slats_time = self.slats_close_time if travel_range > 0 else self.slats_open_time
-        return travel_time_full + slats_time
+        if from_position == 0 or to_position == 0:
+            slats_time = self.slats_close_time if from_position > to_position else self.slats_open_time
+        return (travel_time_full - slats_time) * (travel_range / 100) + slats_time
